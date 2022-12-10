@@ -1,24 +1,31 @@
+// Declaring our packages.
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const app = express();
 
-// cors
+// cors.
 
 app.use((req, res, next) => {
   res.header({ "Access-Control-Allow-Origin": "*" });
   next();
 });
 
+// Body Parse used for receiving data from HTML form.
+
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Establish a connection with our MongoDB.
 mongoose.connect(`${process.env.DB_URL}`);
 app.get("/", (req, res) => {
   res.json({
     status: 200,
   });
 });
+
+// Data Schema
 
 const userSchema = new mongoose.Schema({
   username: String,
@@ -36,10 +43,17 @@ const userSchema = new mongoose.Schema({
   ],
 });
 
+// Creating model from UserSchema.
+
 const User = new mongoose.model("user", userSchema);
+
+// Register route
+
 app.post("/register", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
+
+  // Login a user if the username and password is correct.
 
   User.findOne({ username, password }, (err, data) => {
     if (data) {
@@ -54,28 +68,42 @@ app.post("/register", (req, res) => {
             status: 200,
             username: username,
             password: password,
-            message: "user already exist",
           });
         }
       });
     } else {
       if (!err) {
-        const newUser = new User({
-          username: username,
-          password: password,
-        });
-        newUser.save((err) => {
-          if (err) {
+        // Check if the user has entered wrong password.
+
+        User.findOne({ username }, (err, data) => {
+          if (data) {
             res.json({
-              status: 500,
-              message: "something went wrong",
+              status: 404,
+              message: "password is incorrect",
             });
           } else {
-            res.json({
-              status: 200,
-              username: username,
-              password: password,
-            });
+            if (!err) {
+              // If user does not exist then create a new user with our userSchema.
+
+              const newUser = new User({
+                username: username,
+                password: password,
+              });
+              newUser.save((err) => {
+                if (err) {
+                  res.json({
+                    status: 404,
+                    message: "something went wrong",
+                  });
+                } else {
+                  res.json({
+                    status: 200,
+                    username: username,
+                    password: password,
+                  });
+                }
+              });
+            }
           }
         });
       } else {
@@ -87,6 +115,8 @@ app.post("/register", (req, res) => {
     }
   });
 });
+
+// Upload user code to our mongoDB.
 
 app.post("/upload-code", (req, res) => {
   const code = req.body.code;
@@ -137,6 +167,8 @@ app.post("/upload-code", (req, res) => {
   });
 });
 
+// Show users uploaded code if the user has correct username and password.
+
 app.get("/show-code/:username/:password", (req, res) => {
   const username = req.params.username;
   const password = req.params.password;
@@ -155,6 +187,8 @@ app.get("/show-code/:username/:password", (req, res) => {
     }
   });
 });
+
+// Assigning a PORT to our server.
 
 const PORT = 5000 || process.env.PORT;
 
