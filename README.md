@@ -1,5 +1,8 @@
 # CODE UPLOAD (BACKEND)
 
+
+<img src="https://github.com/subhranshuchoudhury/code-upload-backend/raw/main/logo/logo_1.png" alt="Picture" style="display: block; margin: 0 auto">
+
 Code Upload is a platform where users can upload code easily from around the globe.
 
 ## Language Used
