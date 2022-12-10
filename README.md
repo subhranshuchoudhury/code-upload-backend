@@ -1,6 +1,5 @@
 # CODE UPLOAD (BACKEND)
 
-
 <img src="https://github.com/subhranshuchoudhury/code-upload-backend/raw/main/logo/logo_1.png" alt="Picture" style="display: block; margin: 0 auto">
 
 Code Upload is a platform where users can upload code easily from around the globe.
@@ -142,15 +141,15 @@ fetch("http://localhost:5000/show-code/${username}/${password}", options)
   POST /upload-code
 ```
 
-| FORM URL-Encoded | Type     | Description                     |
-| :--------------- | :------- | :------------------------------ |
-| `username`       | `string` | **Required**. Your Username     |
-| `password`       | `string` | **Required**. Your Password     |
-| `language`       | `string` | **Required**. Your Password     |
-| `assignment_no`  | `string` | **Not Required**. Your Password |
-| `q_no`           | `string` | **Not Required**. Your Password |
-| `q_title`        | `string` | **Not Required**. Your Password |
-| `timestamp`      | `string` | **Not Required**. Your Password |
+| FORM URL-Encoded | Type     | Description                        |
+| :--------------- | :------- | :--------------------------------- |
+| `username`       | `string` | **Required**. Your Username        |
+| `password`       | `string` | **Required**. Your Password        |
+| `language`       | `string` | **Required**. Programming Language |
+| `assignment_no`  | `string` | **Not Required**.                  |
+| `q_no`           | `string` | **Not Required**.                  |
+| `q_title`        | `string` | **Not Required**.                  |
+| `timestamp`      | `string` | **Not Required**.                  |
 
 ##### Example
 
