@@ -1,197 +1,73 @@
-// Declaring our packages.
-
 const express = require("express");
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
-require("dotenv").config();
 const app = express();
-
-// cors.
 
 app.use((req, res, next) => {
   res.header({ "Access-Control-Allow-Origin": "*" });
   next();
 });
 
-// Body Parse used for receiving data from HTML form.
-
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Establish a connection with our MongoDB.
-mongoose.connect(`${process.env.DB_URL}`);
 app.get("/", (req, res) => {
-  res.json({
-    status: 200,
+  res.send({
+    active: true,
+    creator: "Subhranshu Choudhury",
+    profiles: [
+      "https://github.com/subhranshuchoudhury",
+      "https://about.me/subhranshu",
+    ],
+    contacts: ["Phone: +91 8249587552", "Mail: subhransuchoudhury00@gmail.com"],
   });
 });
 
-// Data Schema
+app.post("/login", async (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
 
-const userSchema = new mongoose.Schema({
-  username: String,
-  password: String,
-  login: String,
-  codes: [
-    {
-      code: String,
-      timestamp: String,
-      language: String,
-      assignment_no: String,
-      q_no: String,
-      q_title: String,
+  const options = {
+    method: "POST",
+    headers: {
+      Cookie: "JSESSIONID=919d191178f678f5cc8b0c629037",
+      "Content-Type": "application/json; charset=utf-8",
     },
-  ],
+    body: `{"username": "${username}","password": "${password}","MemberType":"s"}`,
+  };
+
+  await fetch("http://115.240.101.71:8282/CampusPortalSOA/login", options)
+    .then((response) => response.json())
+    .then((response) => res.send(response))
+    .catch((err) => res.send({ error: true }));
 });
 
-// Creating model from UserSchema.
+app.get("/info", async (req, res) => {
+  const options2 = {
+    method: "POST",
+    headers: { Cookie: "JSESSIONID=919d191178f678f5cc8b0c629037" },
+  };
 
-const User = new mongoose.model("user", userSchema);
-
-// Register route
-
-app.post("/register", (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-
-  // Login a user if the username and password is correct.
-
-  User.findOne({ username, password }, (err, data) => {
-    if (data) {
-      User.updateOne({ username }, { $set: { login: new Date() } }, (err) => {
-        if (err) {
-          res.json({
-            status: 404,
-            message: "something went wrong",
-          });
-        } else {
-          res.json({
-            status: 200,
-            username: username,
-            password: password,
-          });
-        }
-      });
-    } else {
-      if (!err) {
-        // Check if the user has entered wrong password.
-
-        User.findOne({ username }, (err, data) => {
-          if (data) {
-            res.json({
-              status: 404,
-              message: "password is incorrect",
-            });
-          } else {
-            if (!err) {
-              // If user does not exist then create a new user with our userSchema.
-
-              const newUser = new User({
-                username: username,
-                password: password,
-              });
-              newUser.save((err) => {
-                if (err) {
-                  res.json({
-                    status: 404,
-                    message: "something went wrong",
-                  });
-                } else {
-                  res.json({
-                    status: 200,
-                    username: username,
-                    password: password,
-                  });
-                }
-              });
-            }
-          }
-        });
-      } else {
-        res.json({
-          status: 404,
-          message: "something went wrong",
-        });
-      }
-    }
-  });
+  await fetch(
+    "http://115.240.101.71:8282/CampusPortalSOA/studentinfo",
+    options2
+  )
+    .then((response) => response.json())
+    .then((response) => res.send(response))
+    .catch((err) => res.send({ error: true }));
 });
 
-// Upload user code to our mongoDB.
+app.get("/attendinfo", async (req, res) => {
+  const options = {
+    method: "POST",
+    headers: { Cookie: "JSESSIONID=919d191178f678f5cc8b0c629037" },
+    body: '{"registerationid":"ITERRETD2209A0000001"}',
+  };
 
-app.post("/upload-code", (req, res) => {
-  const code = req.body.code;
-  const timestamp = req.body.timestamp;
-  const language = req.body.language;
-  const assignment_no = req.body.assignment_no;
-  const q_no = req.body.q_no;
-  const q_title = req.body.q_title;
-  const username = req.body.username;
-  const password = req.body.password;
-
-  User.findOne({ username, password }, (err, data) => {
-    if (data) {
-      User.updateOne(
-        { username, password },
-        {
-          $push: {
-            codes: {
-              code: code,
-              timestamp: timestamp,
-              language: language,
-              assignment_no: assignment_no,
-              q_no: q_no,
-              q_title: q_title,
-            },
-          },
-        },
-        (err) => {
-          if (err) {
-            res.json({
-              status: 404,
-              message: "something went wrong",
-            });
-          } else {
-            res.json({
-              status: 200,
-              message: "code uploaded successfully",
-            });
-          }
-        }
-      );
-    } else {
-      res.json({
-        status: 404,
-        message: "user not found",
-      });
-    }
-  });
+  fetch("http://115.240.101.71:8282/CampusPortalSOA/attendanceinfo", options)
+    .then((response) => response.json())
+    .then((response) => res.send(response))
+    .catch((err) => res.send({ error: true }));
 });
 
-// Show users uploaded code if the user has correct username and password.
-
-app.get("/show-code/:username/:password", (req, res) => {
-  const username = req.params.username;
-  const password = req.params.password;
-  User.findOne({ username, password }, (err, user) => {
-    if (user) {
-      res.send(user);
-    } else {
-      if (err) {
-        res.send(err);
-      } else {
-        res.json({
-          status: 404,
-          message: "user not found",
-        });
-      }
-    }
-  });
-});
-
-// Assigning a PORT to our server.
-
-const PORT = 5000 || process.env.PORT;
-
-app.listen(PORT, () => {
-  console.log("Active On PORT 5000");
+app.listen(process.env.PORT || 8000, () => {
+  console.log("Active on PORT 8000");
 });
